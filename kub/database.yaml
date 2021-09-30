@@ -1,34 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: django
-  labels:
-    name: django
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: django
-  template:
-    metadata:
-      labels:
-        app: django
-    spec:
-      containers:
-      - name: django
-        image: abdelrahmankh/relate
-        imagePullPolicy: IfNotPresent
-        lifecycle:
-          postStart:
-            exec:
-              command: ["/bin/sh", "-c", "sleep 1000"]
-          
-      restartPolicy: Always
-       
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
   name: database
   labels:
     name: database
@@ -65,3 +37,17 @@ spec:
         persistentVolumeClaim:
           claimName: postgres-pvc
       restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+  labels:
+    service: database
+spec:
+  selector:
+    service: database
+  type: ClusterIP
+  ports:
+  - port: 5432

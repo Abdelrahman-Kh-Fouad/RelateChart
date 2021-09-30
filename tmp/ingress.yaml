@@ -4,15 +4,22 @@ metadata:
   name: my-ingress
   annotations:
 spec:
+
   rules:
-  - host: relate.me
+  - host: to.me
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: django
+            name: front
             port:
               number: 8080
-     
+      - path: /todo
+        pathType: Prefix
+        backend:
+          service:
+            name: back
+            port:
+              number: 5000
