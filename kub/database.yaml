@@ -19,23 +19,28 @@ spec:
         image: postgres
         imagePullPolicy: IfNotPresent
         env:
-        - name : POSTGRES_DB 
-          value : relate
         - name : POSTGRES_USER
-          value : admin
-        - name : POSTGRES_PASSWORD
-          value : admin
-        - name : PGDATA
-          value : /data/postgres
+          valueFrom :
+            secretKeyRef:
+              name : postgres-credentials
+              key : user 
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: password
 
+        - name: POSTGRES_DB
+          value: relate
+          
         volumeMounts:
-        - name: postgres-volume-mount
-          mountPath: /data/postgres
+          - name: database-volume-mount
+            mountPath: /var/lib/database/data
 
       volumes:
-      - name: postgres-volume-mount
+      - name: database-volume-mount
         persistentVolumeClaim:
-          claimName: postgres-pvc
+          claimName: database-pvc
       restartPolicy: Always
 
 ---

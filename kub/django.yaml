@@ -17,11 +17,25 @@ spec:
       containers:
       - name: django
         image: abdelrahmankh/relate
+        command: ['/bin/bash', 'entrypoint.sh'] # runs migrations and starts the server
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: user
+
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: password
+
+        - name: POSTGRES_HOST
+          value: database
+
         imagePullPolicy: IfNotPresent
-        lifecycle:
-          postStart:
-            exec:
-              command: ["/bin/sh", "-c", "sleep 1000"]
+        
           
       restartPolicy: Always
        
