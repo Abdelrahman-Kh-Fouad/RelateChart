@@ -1,67 +1,81 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: django
+  name: postgres
   labels:
-    name: django
+    name: postgres
 spec:
-  replicas: 1
+  replicas: {{.Values.replicaCount}}
   selector:
     matchLabels:
-      app: django
+      service: postgres
   template:
     metadata:
       labels:
-        app: django
+        service: postgres
     spec:
       containers:
-      - name: django
-        image: abdelrahmankh/relate
-        imagePullPolicy: IfNotPresent
-        lifecycle:
-          postStart:
-            exec:
-              command: ["/bin/sh", "-c", "sleep 1000"]
-          
-      restartPolicy: Always
-       
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: database
-  labels:
-    name: database
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      service: database
-  template:
-    metadata:
-      labels:
-        service: database
-    spec:
-      containers:
-      - name: database
-        image: postgres
-        imagePullPolicy: IfNotPresent
-        env:
-        - name : POSTGRES_DB 
-          value : relate
-        - name : POSTGRES_USER
-          value : admin
-        - name : POSTGRES_PASSWORD
-          value : admin
-        - name : PGDATA
-          value : /data/postgres
-
-        volumeMounts:
-        - name: postgres-volume-mount
-          mountPath: /data/postgres
+        - name: postgres
+          image: postgres
+          imagePullPolicy: IfNotPresent
+          env:
+            - name : POSTGRES_USER
+              value: {{.Values.postgresql.postgresqlUsername}}
+            - name: POSTGRES_PASSWORD
+              value: {{.Values.postgresql.postgresqlPassword}}
+            - name: POSTGRES_DB
+              value: relate
+              
+          volumeMounts:
+            - name: postgres-volume-mount
+              mountPath: /var/lib/postgres/data
 
       volumes:
       - name: postgres-volume-mount
         persistentVolumeClaim:
           claimName: postgres-pvc
       restartPolicy: Always
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: relate
+  labels:
+    name: relate
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: relate
+  template:
+    metadata:
+      labels:
+        app: relate
+
+    spec:
+      containers:
+        - name: relate
+          image: abdelrahmankh/relate:v3
+          command: ['/bin/bash', 'entrypoint.sh'] # runs migrations and starts the server
+          env:
+            - name: POSTGRES_USER
+              value: {{.Values.postgresql.postgresqlUsername}}
+            - name: POSTGRES_PASSWORD
+              value: {{.Values.postgresql.postgresqlPassword}}
+            - name: POSTGRES_HOST
+              value: postgres
+     
+          resources:
+            limits:
+              cpu: 100m 
+              memory: 300Mi
+            requests:
+              cpu: 100m 
+              memory: 300Mi
+        
+          imagePullPolicy: IfNotPresent
+        
+          
+      restartPolicy: Always
+ 

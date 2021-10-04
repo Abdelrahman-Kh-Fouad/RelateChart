@@ -1,18 +1,15 @@
-apiVersion: networking.k8s.io/v1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: my-ingress
+  name: relate-ingress
   annotations:
 spec:
   rules:
-  - host: relate.me
+  - host: {{.Values.ingress.host}}
     http:
       paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: django
-            port:
-              number: 8080
+      - backend:
+          serviceName: relate
+          servicePort: 8000
+
      
